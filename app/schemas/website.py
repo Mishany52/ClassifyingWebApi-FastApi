@@ -1,23 +1,33 @@
-from typing import Optional
-from pydantic import BaseModel,  HttpUrl
+from typing import Optional, Sequence
+from pydantic import BaseModel, AnyUrl
+
 
 class WebSiteBase(BaseModel):
-    url: Optional[HttpUrl]
+    url: Optional[AnyUrl]
     IABv2Category: Optional[str]
+
+
 class WebSiteCreate(WebSiteBase):
-    pass   
+    pass
+
+
 class WebSiteUpdate(WebSiteBase):
     category: Optional[str]
-    htmlCode: Optional[str]
+    content: Optional[str]
     preparedContent: Optional[str]
-    # source: Optional[str]
+    top_category: Optional[str]
+
 
 class WebSiteInDB(WebSiteUpdate):
     id: Optional[int] = None
-    
-    class Config: 
+
+    class Config:
         from_attributes = True
+
 
 class WebSite(WebSiteInDB):
     pass
-            
+
+
+class WebSiteSearchResults(BaseModel):
+    results: Sequence[WebSite]

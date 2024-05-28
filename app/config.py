@@ -1,23 +1,31 @@
-from typing import Any, Dict, List, Optional, Union
-from pydantic import AnyHttpUrl, EmailStr, HttpUrl, PostgresDsn, validator
-from pydantic_settings import BaseSettings
-import os
-from dotenv import load_dotenv
-from sqlalchemy import URL
+from typing import Optional, Union
+from pydantic import PostgresDsn, field_validator, ValidationInfo
+from pydantic_settings import BaseSettings, SettingsConfigDict
+# import os
+# from dotenv import load_dotenv
+
 # Загрузка переменных окружения из файла .env
-load_dotenv()
-SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URL")
+# load_dotenv()
+# SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URL")
+
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
     API_V1_STR: str = "/api/v1"
-    # SECRET_KEY: str = secrets.token_urlsafe(32)
-    # 60 minutes * 24 hours * 8 days = 8 days
-    # ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+
     # SERVER_NAME: str
     # SERVER_HOST: AnyHttpUrl
     # BACKEND_CORS_ORIGINS is a JSON-formatted list of origins
     # e.g: '["http://localhost", "http://localhost:4200", "http://localhost:3000", \
     # "http://localhost:8080", "http://local.dockertoolbox.tiangolo.com"]'
+    HEADERS: dict = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    }
+    DATASET_PATH_SERVER: str
+    PDATASET_PATH_SERVER: str
+
+    DATASET_PATH_SERVER2: str
+    PDATASET_PATH_SERVER2: str
 
     PROJECT_NAME: str
 
@@ -25,22 +33,27 @@ class Settings(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
-    POSTGRES_PORT:int
-    SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
+    POSTGRES_PORT: int
+    SQLALCHEMY_DATABASE_URI: Union[Optional[PostgresDsn], Optional[str]] = None
 
-    @validator("SQLALCHEMY_DATABASE_URI", pre=True)
-    def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> str:
+    MAX_TOKEN_LENGTH: int
+    MODEL_FR_EN: str
+    MODEL_RU_EN: str
+
+    ROBERTA_PRETRAINED: str
+    ROBERTA_MODEL_NAME: str
+    @field_validator("SQLALCHEMY_DATABASE_URI", mode="before")
+    def assemble_db_connection(cls, v: Optional[str], values: ValidationInfo) -> str:
         if isinstance(v, str):
             return v
-        print(values)
         return PostgresDsn.build(
-            scheme="postgresql+psycopg",
-            username=values.get("POSTGRES_USER"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_SERVER"),
-            port=values.get("POSTGRES_PORT"),
-            path=f"{values.get('POSTGRES_DB') or ''}",
+            scheme="postgresql+asyncpg",
+            username=values.data.get("POSTGRES_USER"),
+            password=values.data.get("POSTGRES_PASSWORD"),
+            host=values.data.get("POSTGRES_SERVER"),
+            port=values.data.get("POSTGRES_PORT"),
+            path=f"{values.data.get('POSTGRES_DB') or ''}",
         )
-    class Config:
-        case_sensitive = True
+
+
 settings = Settings()
