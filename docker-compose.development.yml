@@ -1,0 +1,60 @@
+services:
+  classifier:
+    build:
+      context: .
+      dockerfile: ./dockerfile/Dockerfile.Dev
+    volumes:
+      - ./app:/app/app
+      - ./output:/app/output
+      - .env.debug:/app/.env
+    # command:
+    #   [
+    #     "python",
+    #     "-m",
+    #     "debugpy",
+    #     "--wait-for-client",
+    #     "--listen",
+    #     "0.0.0.0:5678",
+    #     "-m",
+    #     "src.main",
+    #   ]
+    command: uvicorn app.main:app --host 0.0.0.0 --port 5001 --reload
+    ports:
+      - 5678:5678
+      - 5001:5001
+
+  db:
+    container_name: fast_api_classifier_database_pg
+    image: postgres:16-alpine
+    ports:
+      - "5442:5432"
+    environment:
+      POSTGRES_DB: debug_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    volumes:
+      - postgres_parse_vol_dev:/var/lib/postgresql/data/
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    ports:
+      - "6123:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@citizix.com
+      - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/pgadmin_pass
+    secrets:
+      - pgadmin_pass
+    volumes:
+      - pgadmin_parse_data:/home/rundeck/server/data
+
+volumes:
+  postgres_parse_vol_dev:
+  pgadmin_parse_data:
+
+secrets:
+  db_password:
+    file: ./secrets/debug_db_password
+  pgadmin_pass:
+    file: ./secrets/debug_pgadmin_pass

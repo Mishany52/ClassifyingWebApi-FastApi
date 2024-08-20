@@ -15,8 +15,7 @@ from pydantic import AnyUrl
 from bs4 import BeautifulSoup
 import requests
 import re
-
-
+from .Parsing import ParsingSiteService
 class WebSiteService(CRUDBase[WebSite, WebSiteCreate, WebSiteUpdate]):
     @staticmethod
     def load_data(fileName: str):
@@ -86,12 +85,10 @@ class WebSiteService(CRUDBase[WebSite, WebSiteCreate, WebSiteUpdate]):
 
     def getPreparedTextByUrl(self, url: AnyUrl, params='', headers='') -> str:
         try:
-            htmlCode = self.getHtml(url=url, params=params, headers=headers)
-            if not htmlCode:
+            cleanText, html, lang, processing_times = ParsingSiteService.full_pipeline(url=url)
+            if not cleanText:
                 raise HTTPException(status_code=status.HTTP_204_NO_CONTENT, detail=f"Parsing  url= {url} failed")
-            content = self.getContent(htmlCode)
-            preparedText = self.processTextWithRegex(content)
-            return preparedText
+            return cleanText
         except Exception as e:
             print(e)
 

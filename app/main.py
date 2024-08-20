@@ -8,9 +8,10 @@ from app.router.website import webSiteRouter
 from app.router.translation import translationRouter
 from app.config import settings
 from app import deps
+from app import services
 
-from app.schemas.classification import ClassRequest
 from app.classifier.bertModel.RoBERTa_classifier import get_model, RoBERTaClassifier
+from app.schemas.classification import ClassRequest
 app = FastAPI(title=settings.PROJECT_NAME, docs_url="/api/docs")
 
 
@@ -30,7 +31,13 @@ async def root(
 def predict(request: ClassRequest, model: RoBERTaClassifier = Depends(get_model)):
     predict = model.predict(request.text)
     return predict
-
+@app.post("/categorize")
+async def parsAndCategorizeText(
+        request: ClassRequest, model: RoBERTaClassifier = Depends(get_model)
+):
+    preparedText = services.webSite.getPreparedTextByUrl(url=request.text, headers=settings.HEADERS)
+    predict = model.predict(preparedText)
+    return str(predict)
 # Routers
 app.include_router(
     webSiteRouter,

@@ -1,4 +1,5 @@
 {
   "cSpell.language": "en,ru-RU,ru",
-  "cSpell.words": ["SSLEOF"]
+  "cSpell.words": ["SSLEOF"],
+  "git.ignoreLimitWarning": true
 }
