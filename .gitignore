@@ -1,2 +1,7 @@
 __pycache__
+<<<<<<< Updated upstream
 .env
+=======
+.env
+bertModels/*.pth
+>>>>>>> Stashed changes
